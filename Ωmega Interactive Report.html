@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ω Omega Report</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0D0D14;min-height:100vh;padding:20px}
+:root{
+  --c-daily:#4A9EFF;--c-asia:#00C896;--c-lonleg:#C8A832;--c-london:#A855F7;--c-ny:#FF6B35;
+  --c-strong:#00C896;--c-ok:#4A9EFF;--c-avoid:#FF4444;--c-gold:#E8C84A;
+  --bg1:#111118;--bg2:#17171F;--bg3:#1E1E28;--bg4:#25252F;--bg5:#2C2C38;
+  --border:#2A2A3A;--text1:#F0F0FF;--text2:#9090AA;--text3:#555568;
+}
+.omega-wrap{background:var(--bg1);border-radius:16px;overflow:hidden;border:1px solid var(--border);max-width:1000px;margin:0 auto}
+/* HEADER */
+.header{padding:28px 28px 20px;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.header-bg{position:absolute;inset:0;background:linear-gradient(135deg,#111118 0%,#1a1428 50%,#111820 100%);z-index:0}
+.header-glow{position:absolute;width:300px;height:300px;border-radius:50%;top:-80px;left:-40px;background:radial-gradient(circle,rgba(74,158,255,0.06) 0%,transparent 70%);z-index:0}
+.header-glow2{position:absolute;width:200px;height:200px;border-radius:50%;top:-30px;right:60px;background:radial-gradient(circle,rgba(168,85,247,0.05) 0%,transparent 70%);z-index:0}
+.header-content{position:relative;z-index:1}
+.omega-title{font-size:28px;font-weight:500;color:var(--text1);letter-spacing:-0.5px;display:flex;align-items:center;gap:10px}
+.omega-symbol{font-size:32px;background:linear-gradient(135deg,#4A9EFF,#A855F7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.omega-sub{font-size:13px;color:var(--text2);margin-top:4px}
+.session-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:18px;align-items:center}
+.tab{padding:7px 14px;border-radius:8px;border:1px solid var(--border);font-size:12px;cursor:pointer;transition:all 0.18s;color:var(--text2);background:var(--bg2);letter-spacing:0.3px;white-space:nowrap}
+.tab:hover{border-color:#444;color:var(--text1)}
+.tab.active{color:#000;font-weight:600}
+.tab[data-s="daily"].active{background:var(--c-daily);border-color:var(--c-daily)}
+.tab[data-s="asia"].active{background:var(--c-asia);border-color:var(--c-asia)}
+.tab[data-s="lonleg"].active{background:var(--c-lonleg);border-color:var(--c-lonleg)}
+.tab[data-s="london"].active{background:var(--c-london);border-color:var(--c-london)}
+.tab[data-s="ny"].active{background:var(--c-ny);border-color:var(--c-ny)}
+.tab[data-s="confluence"].active{background:var(--c-gold);border-color:var(--c-gold)}
+.tab[data-s="scorer"].active{background:#00C896;border-color:#00C896}
+.tab[data-s="dol"].active{background:#7B68EE;border-color:#7B68EE;color:#fff}
+.tab[data-s="news"].active{background:#FF4444;border-color:#FF4444;color:#fff}
+.tab-divider{width:1px;height:20px;background:var(--border);margin:0 4px}
+/* BODY */
+.body{padding:20px 24px}
+.page{display:none}.page.active{display:block}
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.stat-label{font-size:10px;color:var(--text3);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px}
+.stat-val{font-size:20px;font-weight:500;color:var(--text1)}
+.stat-sub{font-size:11px;color:var(--text2);margin-top:2px}
+/* TABLE */
+.section-label{font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.table-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:18px}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl thead tr{background:var(--bg3)}
+.tbl th{padding:9px 12px;text-align:left;color:var(--text3);font-weight:500;font-size:10px;letter-spacing:0.8px;text-transform:uppercase}
+.tbl td{padding:9px 12px;border-top:1px solid var(--border);vertical-align:middle;color:var(--text1)}
+.tbl tr{background:var(--bg2);transition:background 0.12s}
+.tbl tr:hover{background:var(--bg3)}
+.tbl tr.top-row{background:rgba(0,0,0,0.4)}
+.level-pill{display:inline-block;font-size:11px;font-weight:500;font-family:monospace;padding:3px 8px;border-radius:5px}
+.bar-cell{display:flex;align-items:center;gap:8px}
+.bar-bg{flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;min-width:80px}
+.bar-fill{height:100%;border-radius:3px}
+.expr{font-size:12px;font-weight:500;font-family:monospace}
+.badge{font-size:10px;font-weight:500;padding:3px 8px;border-radius:4px;letter-spacing:0.3px}
+.badge-strong{background:rgba(0,200,150,0.15);color:#00C896;border:1px solid rgba(0,200,150,0.25)}
+.badge-ok{background:rgba(74,158,255,0.12);color:#4A9EFF;border:1px solid rgba(74,158,255,0.22)}
+.badge-avoid{background:rgba(255,68,68,0.12);color:#FF4444;border:1px solid rgba(255,68,68,0.22)}
+.badge-none{color:var(--text3);font-size:10px}
+.highlight-bar{height:2px;width:100%;margin-bottom:16px;border-radius:2px}
+.best-note{background:var(--bg3);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--text2);margin-bottom:14px;border-left:3px solid var(--c-strong)}
+.search-bar{display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
+.search-bar input{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text1);font-size:12px;width:200px;outline:none}
+.search-bar input:focus{border-color:#444}
+.filter-btn{padding:6px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:7px;font-size:11px;cursor:pointer;color:var(--text2);transition:all 0.15s}
+.filter-btn:hover,.filter-btn.on{background:var(--bg3);color:var(--text1);border-color:#444}
+.filter-btn.on{color:var(--c-strong);border-color:rgba(0,200,150,0.3)}
+/* CONFLUENCE */
+.confluence-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;transition:all 0.15s}
+.confluence-row:hover{background:var(--bg3);border-color:#333}
+.conf-label{flex:1;font-size:12px;color:var(--text1)}
+.conf-sub{font-size:10px;color:var(--text2);margin-top:2px}
+.conf-edge{font-size:12px;font-weight:500;color:#E8C84A;font-family:monospace;min-width:50px;text-align:right}
+.conf-bar-wrap{width:80px;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.conf-bar{height:100%;background:#E8C84A;border-radius:2px}
+.insights-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.insight-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px}
+.insight-icon{font-size:16px;margin-bottom:6px}
+.insight-title{font-size:12px;font-weight:500;color:var(--text1);margin-bottom:4px}
+.insight-body{font-size:11px;color:var(--text2);line-height:1.5}
+/* ── SCORER ── */
+.scorer-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-lbl{font-size:10px;color:var(--text3);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:5px;margin-top:12px;display:block}
+.form-lbl:first-child{margin-top:0}
+.sc-select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--text1);font-size:12px;outline:none;cursor:pointer}
+.sc-select:focus{border-color:#555}
+.session-pickers{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:4px}
+.sess-col{background:var(--bg3);border-radius:8px;padding:8px 7px;border:1px solid var(--border)}
+.sess-col-hdr{font-size:9px;letter-spacing:0.8px;text-transform:uppercase;font-weight:600;margin-bottom:5px;text-align:center}
+.sess-col select{width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:5px;padding:4px 5px;font-size:10.5px;color:var(--text1);outline:none;cursor:pointer}
+/* Score output */
+.score-panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;position:sticky;top:10px}
+.score-ring-wrap{display:flex;justify-content:center;margin-bottom:14px}
+.score-ring{width:110px;height:110px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:3px solid var(--border);transition:border-color .3s}
+.score-big{font-size:38px;font-weight:700;line-height:1;transition:color .3s}
+.score-denom{font-size:11px;color:var(--text3)}
+.verdict-pill{text-align:center;font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;margin-bottom:12px;letter-spacing:.3px}
+.bkd-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)}
+.bkd-row:last-child{border-bottom:none}
+.bkd-key{font-size:11px;color:var(--text2)}
+.bkd-val{font-size:11px;font-weight:600;font-family:monospace}
+.warn-box{background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.25);border-radius:7px;padding:8px 10px;font-size:11px;color:#FF6666;margin-top:8px;line-height:1.5}
+.sc-section{font-size:10px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin:14px 0 6px;display:flex;align-items:center;gap:6px}
+.sc-section::after{content:'';flex:1;height:1px;background:var(--border)}
+/* Level quality mini bars */
+.lv-bar-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)}
+.lv-bar-row:last-child{border-bottom:none}
+.lv-sess{font-size:10px;font-weight:700;min-width:26px;font-family:monospace}
+.lv-name{font-size:10px;color:var(--text2);min-width:80px}
+.lv-bar-bg{flex:1;height:4px;background:var(--bg4);border-radius:2px}
+.lv-bar-f{height:4px;border-radius:2px;transition:width .3s}
+.lv-pts{font-size:10px;font-family:monospace;min-width:40px;text-align:right}
+/* ── DOL ── */
+.dol-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.dol-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px}
+.dol-card h3{font-size:12px;font-weight:600;color:var(--text1);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.dol-table{width:100%;border-collapse:collapse;font-size:11.5px}
+.dol-table td{padding:5px 8px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text2)}
+.dol-table tr:last-child td{border-bottom:none}
+.dol-table td:first-child{color:var(--text1);font-weight:500;white-space:nowrap;padding-right:12px}
+.cycle-row{display:flex;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:8px;margin-bottom:7px;border-left:2px solid}
+.cycle-row p{font-size:11.5px;color:var(--text2);line-height:1.5}
+.cycle-row strong{color:var(--text1)}
+.anchor-tbl-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px}
+.anchor-tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.anchor-tbl thead tr{background:var(--bg3)}
+.anchor-tbl th{padding:8px 12px;color:var(--text3);font-size:10px;letter-spacing:.7px;text-transform:uppercase;font-weight:500;text-align:left}
+.anchor-tbl td{padding:8px 12px;border-top:1px solid var(--border);color:var(--text2);vertical-align:top}
+.anchor-tbl tr{background:var(--bg2)}
+.anchor-tbl td:first-child{color:var(--text1);font-weight:600;font-family:monospace;white-space:nowrap}
+/* ── NEWS ── */
+.news-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.news-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:13px}
+.news-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.news-name{font-size:13px;font-weight:600;color:var(--text1)}
+.news-wr{font-size:18px;font-weight:700;font-family:monospace}
+.news-rule{font-size:11px;color:var(--text2);line-height:1.5;margin-top:4px}
+.range-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.range-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;border-top:3px solid}
+.range-wr{font-size:18px;font-weight:700;font-family:monospace;margin:4px 0}
+.range-note{font-size:11px;color:var(--text2);line-height:1.45}
+/* misc */
+.tbl-r{text-align:right;font-family:monospace}
+</style>
+</head>
+<body>
+<div class="omega-wrap">
+  <div class="header">
+    <div class="header-bg"></div>
+    <div class="header-glow"></div>
+    <div class="header-glow2"></div>
+    <div class="header-content">
+      <div class="omega-title">
+        <span class="omega-symbol">Ω</span>
+        <span>mega Report</span>
+      </div>
+      <div class="omega-sub">NQ Futures · Session Level Performance · DOL Integration · v3</div>
+      <div class="session-tabs">
+        <div class="tab active" data-s="daily" onclick="switchTab('daily')">Daily</div>
+        <div class="tab" data-s="asia" onclick="switchTab('asia')">Asia</div>
+        <div class="tab" data-s="lonleg" onclick="switchTab('lonleg')">London Leg</div>
+        <div class="tab" data-s="london" onclick="switchTab('london')">London Level</div>
+        <div class="tab" data-s="ny" onclick="switchTab('ny')">New York</div>
+        <div class="tab" data-s="confluence" onclick="switchTab('confluence')">Confluence</div>
+        <div class="tab-divider"></div>
+        <div class="tab" data-s="scorer" onclick="switchTab('scorer')">⚡ Scorer</div>
+        <div class="tab" data-s="dol" onclick="switchTab('dol')">DOL</div>
+        <div class="tab" data-s="news" onclick="switchTab('news')">News Rules</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- DAILY -->
+    <div class="page active" id="page-daily">
+      <div class="highlight-bar" style="background:linear-gradient(90deg,#4A9EFF,transparent)"></div>
+      <div class="stats-row" id="stats-daily"></div>
+      <div class="best-note" id="note-daily"></div>
+      <div class="section-label">Level Performance</div>
+      <div class="search-bar">
+        <input placeholder="Filter levels…" oninput="filterTable('daily',this.value)"/>
+        <button class="filter-btn" id="filt-daily-strong" onclick="toggleFilter('daily','strong')">Strong only</button>
+        <button class="filter-btn" id="filt-daily-avoid" onclick="toggleFilter('daily','avoid')">Show Avoid</button>
+      </div>
+      <div class="table-wrap"><table class="tbl"><thead><tr>
+        <th>Level</th><th class="sortable" onclick="sortTable('daily','trades')">Trades ↕</th>
+        <th class="sortable" onclick="sortTable('daily','win')">Win% ↕</th>
+        <th>Distribution</th>
+        <th class="sortable" onclick="sortTable('daily','expr')">Exp R ↕</th>
+        <th>Signal</th>
+      </tr></thead><tbody id="tbody-daily"></tbody></table></div>
+    </div>
+
+    <!-- ASIA -->
+    <div class="page" id="page-asia">
+      <div class="highlight-bar" style="background:linear-gradient(90deg,#00C896,transparent)"></div>
+      <div class="stats-row" id="stats-asia"></div>
+      <div class="best-note" id="note-asia"></div>
+      <div class="section-label">Level Performance</div>
+      <div class="search-bar">
+        <input placeholder="Filter levels…" oninput="filterTable('asia',this.value)"/>
+        <button class="filter-btn" id="filt-asia-strong" onclick="toggleFilter('asia','strong')">Strong only</button>
+        <button class="filter-btn" id="filt-asia-avoid" onclick="toggleFilter('asia','avoid')">Show Avoid</button>
+      </div>
+      <div class="table-wrap"><table class="tbl"><thead><tr>
+        <th>Level</th><th>Trades</th><th class="sortable" onclick="sortTable('asia','win')">Win% ↕</th>
+        <th>Distribution</th><th class="sortable" onclick="sortTable('asia','expr')">Exp R ↕</th><th>Signal</th>
+      </tr></thead><tbody id="tbody-asia"></tbody></table></div>
+    </div>
+
+    <!-- LONDON LEG -->
+    <div class="page" id="page-lonleg">
+      <div class="highlight-bar" style="background:linear-gradient(90deg,#C8A832,transparent)"></div>
+      <div class="stats-row" id="stats-lonleg"></div>
+      <div class="best-note" id="note-lonleg"></div>
+      <div class="section-label">Level Performance</div>
+      <div class="search-bar">
+        <input placeholder="Filter levels…" oninput="filterTable('lonleg',this.value)"/>
+        <button class="filter-btn" id="filt-lonleg-strong" onclick="toggleFilter('lonleg','strong')">Strong only</button>
+        <button class="filter-btn" id="filt-lonleg-avoid" onclick="toggleFilter('lonleg','avoid')">Show Avoid</button>
+      </div>
+      <div class="table-wrap"><table class="tbl"><thead><tr>
+        <th>Level</th><th>Trades</th><th class="sortable" onclick="sortTable('lonleg','win')">Win% ↕</th>
+        <th>Distribution</th><th class="sortable" onclick="sortTable('lonleg','expr')">Exp R ↕</th><th>Signal</th>
+      </tr></thead><tbody id="tbody-lonleg"></tbody></table></div>
+    </div>
+
+    <!-- LONDON LEVEL -->
+    <div class="page" id="page-london">
+      <div class="highlight-bar" style="background:linear-gradient(90deg,#A855F7,transparent)"></div>
+      <div class="stats-row" id="stats-london"></div>
+      <div class="best-note" id="note-london"></div>
+      <div class="section-label">Level Performance</div>
+      <div class="search-bar">
+        <input placeholder="Filter levels…" oninput="filterTable('london',this.value)"/>
+        <button class="filter-btn" id="filt-london-strong" onclick="toggleFilter('london','strong')">Strong only</button>
+        <button class="filter-btn" id="filt-london-avoid" onclick="toggleFilter('london','avoid')">Show Avoid</button>
+      </div>
+      <div class="table-wrap"><table class="tbl"><thead><tr>
+        <th>Level</th><th>Trades</th><th class="sortable" onclick="sortTable('london','win')">Win% ↕</th>
+        <th>Distribution</th><th class="sortable" onclick="sortTable('london','expr')">Exp R ↕</th><th>Signal</th>
+      </tr></thead><tbody id="tbody-london"></tbody></table></div>
+    </div>
+
+    <!-- NY -->
+    <div class="page" id="page-ny">
+      <div class="highlight-bar" style="background:linear-gradient(90deg,#FF6B35,transparent)"></div>
+      <div class="stats-row" id="stats-ny"></div>
+      <div class="best-note" id="note-ny"></div>
+      <div class="section-label">Level Performance</div>
+      <div class="search-bar">
+        <input placeholder="Filter levels…" oninput="filterTable('ny',this.value)"/>
+        <button class="filter-btn" id="filt-ny-strong" onclick="toggleFilter('ny','strong')">Strong only</button>
+        <button class="filter-btn" id="filt-ny-avoid" onclick="toggleFilter('ny','avoid')">Show Avoid</button>
+      </div>
+      <div class="table-wrap"><table class="tbl"><thead><tr>
+        <th>Level</th><th>Trades</th><th class="sortable" onclick="sortTable('ny','win')">Win% ↕</th>
+        <th>Distribution</th><th class="sortable" onclick="sortTable('ny','expr')">Exp R ↕</th><th>Signal</th>
+      </tr></thead><tbody id="tbody-ny"></tbody></table></div>
+    </div>
+
+    <!-- CONFLUENCE -->
+    <div class="page" id="page-confluence">
+      <div class="highlight-bar" style="background:linear-gradient(90deg,#E8C84A,transparent)"></div>
+      <div class="section-label">Top Alignments</div>
+      <div id="conf-list"></div>
+      <div class="section-label" style="margin-top:20px">Key Principles</div>
+      <div class="insights-grid" id="insights-grid"></div>
+    </div>
+
+    <!-- ── SCORER ── -->
+    <div class="page" id="page-scorer">
+      <div class="highlight-bar" style="background:linear-gradient(90deg,#00C896,transparent)"></div>
+      <div class="scorer-grid">
+        <div>
+          <div class="sc-section">Session anchor levels</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.5">Select which Fibonacci level each session is contributing to the zone. Leave "None" for sessions not aligning.</div>
+          <div class="session-pickers">
+            <div class="sess-col" style="border-top:2px solid var(--c-daily)">
+              <div class="sess-col-hdr" style="color:var(--c-daily)">D — Daily</div>
+              <select id="lv-D" onchange="scoreIt()">
+                <option value="none">None</option>
+                <option value="mid">0 (mid)</option>
+                <option value="n05">−0.5</option>
+                <option value="n618">−0.618</option>
+                <option value="n10">−1.0</option>
+                <option value="n127">−1.272</option>
+                <option value="n162">−1.618</option>
+                <option value="n20">−2.0+</option>
+                <option value="p05">+0.5</option>
+                <option value="p618">+0.618</option>
+                <option value="p10">+1.0</option>
+                <option value="p127">+1.272</option>
+                <option value="p162">+1.618</option>
+                <option value="p20">+2.0+</option>
+              </select>
+            </div>
+            <div class="sess-col" style="border-top:2px solid var(--c-asia)">
+              <div class="sess-col-hdr" style="color:var(--c-asia)">A — Asia</div>
+              <select id="lv-A" onchange="scoreIt()">
+                <option value="none">None</option>
+                <option value="mid">0 (mid)</option>
+                <option value="n05">−0.5</option>
+                <option value="n618">−0.618</option>
+                <option value="n10">−1.0</option>
+                <option value="n127">−1.272</option>
+                <option value="n162">−1.618</option>
+                <option value="n20">−2.0+</option>
+                <option value="p05">+0.5</option>
+                <option value="p618">+0.618</option>
+                <option value="p10">+1.0</option>
+                <option value="p127">+1.272</option>
+                <option value="p162">+1.618</option>
+                <option value="p20">+2.0+</option>
+              </select>
+            </div>
+            <div class="sess-col" style="border-top:2px solid var(--c-lonleg)">
+              <div class="sess-col-hdr" style="color:var(--c-lonleg)">LG — Lon Leg</div>
+              <select id="lv-LG" onchange="scoreIt()">
+                <option value="none">None</option>
+                <option value="mid">0 (mid)</option>
+                <option value="n05">−0.5</option>
+                <option value="n618">−0.618</option>
+                <option value="n10">−1.0</option>
+                <option value="n127">−1.272</option>
+                <option value="n162">−1.618</option>
+                <option value="n20">−2.0+</option>
+                <option value="p05">+0.5</option>
+                <option value="p618">+0.618</option>
+                <option value="p10">+1.0</option>
+                <option value="p127">+1.272</option>
+                <option value="p162">+1.618</option>
+                <option value="p20">+2.0+</option>
+              </select>
+            </div>
+            <div class="sess-col" style="border-top:2px solid var(--c-london)">
+              <div class="sess-col-hdr" style="color:var(--c-london)">Lo — London</div>
+              <select id="lv-Lo" onchange="scoreIt()">
+                <option value="none">None</option>
+                <option value="mid">0 (mid)</option>
+                <option value="n05">−0.5</option>
+                <option value="n618">−0.618</option>
+                <option value="n10">−1.0</option>
+                <option value="n127">−1.272</option>
+                <option value="n162">−1.618</option>
+                <option value="n20">−2.0+</option>
+                <option value="p05">+0.5</option>
+                <option value="p618">+0.618</option>
+                <option value="p10">+1.0</option>
+                <option value="p127">+1.272</option>
+                <option value="p162">+1.618</option>
+                <option value="p20">+2.0+</option>
+              </select>
+            </div>
+            <div class="sess-col" style="border-top:2px solid var(--c-ny)">
+              <div class="sess-col-hdr" style="color:var(--c-ny)">NY — 9:30</div>
+              <select id="lv-NY" onchange="scoreIt()">
+                <option value="none">None</option>
+                <option value="mid">0 (mid)</option>
+                <option value="n05">−0.5</option>
+                <option value="n618">−0.618</option>
+                <option value="n10">−1.0</option>
+                <option value="n127">−1.272</option>
+                <option value="n162">−1.618</option>
+                <option value="n20">−2.0+</option>
+                <option value="p05">+0.5</option>
+                <option value="p618">+0.618</option>
+                <option value="p10">+1.0</option>
+                <option value="p127">+1.272</option>
+                <option value="p162">+1.618</option>
+                <option value="p20">+2.0+</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="sc-section">Overnight range (06:00–09:00)</div>
+          <select class="sc-select" id="sc-range" onchange="scoreIt()">
+            <option value="L">Large — above 134pt</option>
+            <option value="M" selected>Medium — 80 to 134pt</option>
+            <option value="S">Small — below 80pt</option>
+          </select>
+
+          <div class="sc-section">DOL alignment</div>
+          <select class="sc-select" id="sc-dol" onchange="scoreIt()">
+            <option value="aligned" selected>Aligned — external DOL beyond 48pt target</option>
+            <option value="partial">Partial — internal DOL (FVG/EQH) in the way</option>
+            <option value="none">None — no clear DOL visible</option>
+            <option value="against">Against — DOL is opposite to trade direction</option>
+          </select>
+
+          <div class="sc-section">News event today</div>
+          <select class="sc-select" id="sc-news" onchange="scoreIt()">
+            <option value="none" selected>None — clean day</option>
+            <option value="gdp">GDP — trades normally</option>
+            <option value="ppi">PPI — standard filters</option>
+            <option value="nfp">NFP — check range</option>
+            <option value="cpi">CPI — half size, Large range only</option>
+            <option value="ism">ISM — avoid 9:35–9:59</option>
+            <option value="fomc">FOMC — no trade</option>
+          </select>
+        </div>
+
+        <!-- RIGHT — Score output -->
+        <div>
+          <div class="score-panel">
+            <div class="score-ring-wrap">
+              <div class="score-ring" id="sc-ring">
+                <div class="score-big" id="sc-num">—</div>
+                <div class="score-denom">/ 100</div>
+              </div>
+            </div>
+            <div class="verdict-pill" id="sc-verdict">Select levels to score</div>
+            <div id="sc-warns"></div>
+
+            <div class="sc-section" style="margin-top:12px">Breakdown</div>
+            <div id="sc-bkd"></div>
+
+            <div class="sc-section">Session contributions</div>
+            <div id="sc-lvl-bars"></div>
+
+            <div class="sc-section">Size guide</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.8">
+              <div><span style="color:#00C896;font-weight:600">75–100</span> — Full size</div>
+              <div><span style="color:#4A9EFF;font-weight:600">60–74</span> — Full size</div>
+              <div><span style="color:#C8A832;font-weight:600">45–59</span> — Half size, 3+ anchors only</div>
+              <div><span style="color:#FF6B35;font-weight:600">30–44</span> — Skip</div>
+              <div><span style="color:#FF4444;font-weight:600">0–29</span> — No trade</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DOL ── -->
+    <div class="page" id="page-dol">
+      <div class="highlight-bar" style="background:linear-gradient(90deg,#7B68EE,transparent)"></div>
+      <div class="section-label">What is Draw on Liquidity</div>
+      <div class="dol-grid">
+        <div class="dol-card" style="border-top:2px solid #00C896">
+          <h3><span style="color:#00C896">▲</span> External DOL — final destination</h3>
+          <table class="dol-table">
+            <tr><td>Session H/L</td><td>Asia, London, NY session highs/lows. Primary BSL/SSL pools.</td></tr>
+            <tr><td>PDH / PDL</td><td>Previous day high and low. If unswept = strongest magnet.</td></tr>
+            <tr><td>Data H/L</td><td>Highs/lows from major news releases. Precise algo levels.</td></tr>
+            <tr><td>HTF FVGs</td><td>Unfilled 4hr / Daily / Weekly fair value gaps.</td></tr>
+            <tr><td>BSL / SSL</td><td>Weekly/monthly swing highs (BSL above) and lows (SSL below).</td></tr>
+          </table>
+        </div>
+        <div class="dol-card" style="border-top:2px solid #4A9EFF">
+          <h3><span style="color:#4A9EFF">◆</span> Internal DOL — pit stops</h3>
+          <table class="dol-table">
+            <tr><td>EQH / EQL</td><td>Equal highs = BSL cluster. Equal lows = SSL cluster. Price hunts these before continuation.</td></tr>
+            <tr><td>5m FVGs</td><td>Unfilled 5-min fair value gaps from prior session. Short-term magnets.</td></tr>
+            <tr><td>15m FVGs</td><td>More significant than 5m. Medium-term internal target.</td></tr>
+            <tr><td>Internal BSL/SSL</td><td>Intraday equal highs/lows formed within the current session.</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-label">The IRL → ERL cycle</div>
+      <div class="cycle-row" style="border-left-color:#00C896">
+        <p><strong>When external liquidity (ERL) is taken</strong>, the next DOL is internal — an FVG or equal H/L. When internal (IRL) is taken, the next DOL is external — a swing high/low. They alternate. Knowing where you are in this cycle tells you whether an Omega zone is a reversal point or a pit stop.</p>
+      </div>
+      <div class="cycle-row" style="border-left-color:#C8A832;margin-top:6px">
+        <p><strong>Applied to Omega:</strong> If Asia high was swept (external BSL taken), the LG:0 midpoint zone is now the primary internal DOL. After LG:0 is touched (internal taken), price targets the PDH above (external). Map which cycle you're in before entering.</p>
+      </div>
+
+      <div class="section-label" style="margin-top:16px">Omega anchors as DOL</div>
+      <div class="anchor-tbl-wrap">
+        <table class="anchor-tbl">
+          <thead><tr><th>Anchor</th><th>DOL type</th><th>Key levels</th><th>Pre-trade use</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--c-daily)">D — Daily</td><td>External reference</td><td>D:0 = daily equilibrium. D extensions = weekly BSL/SSL</td><td>Macro bias: above D:0 = bullish DOL. Below = bearish.</td></tr>
+            <tr><td style="color:var(--c-asia)">A — Asia</td><td>External session</td><td>A high = BSL. A low = SSL. A:0 = overnight midpoint.</td><td>Has Asia H/L been swept today? If not — still active DOL.</td></tr>
+            <tr><td style="color:var(--c-london)">Lo — London</td><td>External session</td><td>Lo high/low = London session BSL/SSL.</td><td>London often sets direction that NYAM reverses against.</td></tr>
+            <tr><td style="color:var(--c-lonleg)">LG — Last Leg</td><td>Internal (manipulation)</td><td>LG:0 = manipulation midpoint. LG extensions = fuel exhaust.</td><td>LG:+0.618, LG:+1.0 = manipulation runs out = entry zones.</td></tr>
+            <tr><td style="color:var(--c-ny)">NY — 9:30</td><td>Internal (opening range)</td><td>NY:0 = 9:30 bar midpoint. NY H/L = first BSL/SSL.</td><td>Created at 9:30 — most reactive to news. Use cautiously.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-label">Target validation before entry</div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>DOL scenario</th><th>Size</th><th>Trade management</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--c-strong)">External DOL 48–80pt beyond entry</td><td><span class="badge badge-strong">FULL</span></td><td>Hold for 48pt. Consider trailing runner to DOL.</td></tr>
+            <tr><td style="color:var(--c-strong)">External DOL &gt;80pt beyond entry</td><td><span class="badge badge-strong">FULL</span></td><td>Partial at 48pt. Trail remainder toward external DOL.</td></tr>
+            <tr><td style="color:#C8A832">Internal DOL between entry and 48pt</td><td><span class="badge badge-ok">HALF</span></td><td>TP at internal DOL or expect stall before continuation.</td></tr>
+            <tr><td style="color:var(--text2)">No clear DOL visible</td><td><span class="badge badge-ok">HALF</span></td><td>Zone only — no destination narrative. Manage tight.</td></tr>
+            <tr><td style="color:var(--c-avoid)">DOL is against the trade direction</td><td><span class="badge badge-avoid">SKIP</span></td><td>Price has a reason to go the other way first.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── NEWS ── -->
+    <div class="page" id="page-news">
+      <div class="highlight-bar" style="background:linear-gradient(90deg,#FF4444,transparent)"></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+        <div class="stat-card" style="border-top:2px solid #FF4444"><div class="stat-label">News day WR</div><div class="stat-val" style="color:#FF4444">33.3%</div><div class="stat-sub">132 prime trades</div></div>
+        <div class="stat-card" style="border-top:2px solid #00C896"><div class="stat-label">Non-news WR</div><div class="stat-val" style="color:#00C896">40.6%</div><div class="stat-sub">508 prime trades</div></div>
+        <div class="stat-card" style="border-top:2px solid #C8A832"><div class="stat-label">News penalty</div><div class="stat-val" style="color:#C8A832">−7.3pp</div><div class="stat-sub">Varies heavily by type</div></div>
+      </div>
+
+      <div class="section-label">By news type</div>
+      <div class="news-type-grid">
+        <div class="news-card" style="border-top:3px solid #FF4444">
+          <div class="news-card-header"><span class="news-name">FOMC</span><span class="news-wr" style="color:#FF4444">9.1%</span></div>
+          <span class="badge badge-avoid">NO TRADE</span>
+          <div class="news-rule" style="margin-top:6px">Negative EV. Rate decisions corrupt all zone calculations. Skip the entire prime window. Full session avoid.</div>
+        </div>
+        <div class="news-card" style="border-top:3px solid #FF6644">
+          <div class="news-card-header"><span class="news-name">ISM</span><span class="news-wr" style="color:#FF6644">28.6%</span></div>
+          <span class="badge badge-avoid">AVOID 9:35–9:59</span>
+          <div class="news-rule" style="margin-top:6px">10:00 release destroys the 9:45 window. Wait for the 10:00–10:09 slot — 62.5% WR even on news days.</div>
+        </div>
+        <div class="news-card" style="border-top:3px solid #C8A832">
+          <div class="news-card-header"><span class="news-name">CPI</span><span class="news-wr" style="color:#C8A832">30.4%</span></div>
+          <span class="badge" style="background:rgba(200,168,50,0.15);color:#C8A832;border:1px solid rgba(200,168,50,0.25)">HALF SIZE · LARGE RANGE ONLY</span>
+          <div class="news-rule" style="margin-top:6px">8:30 spike distorts zones. Only trade if overnight range is Large. Half size maximum.</div>
+        </div>
+        <div class="news-card" style="border-top:3px solid #4A9EFF">
+          <div class="news-card-header"><span class="news-name">NFP</span><span class="news-wr" style="color:#4A9EFF">40.0%</span></div>
+          <span class="badge badge-ok">STANDARD + CHECK RANGE</span>
+          <div class="news-rule" style="margin-top:6px">First Friday. Baseline range. Small range NFP = no trade. Otherwise treat normally.</div>
+        </div>
+        <div class="news-card" style="border-top:3px solid #4A9EFF">
+          <div class="news-card-header"><span class="news-name">PPI</span><span class="news-wr" style="color:#4A9EFF">37.5%</span></div>
+          <span class="badge badge-ok">STANDARD FILTERS</span>
+          <div class="news-rule" style="margin-top:6px">Near baseline. Trade with full conditions stack. No additional restrictions.</div>
+        </div>
+        <div class="news-card" style="border-top:3px solid #00C896">
+          <div class="news-card-header"><span class="news-name">GDP</span><span class="news-wr" style="color:#00C896">46.2%</span></div>
+          <span class="badge badge-strong">TRADE NORMALLY</span>
+          <div class="news-rule" style="margin-top:6px">Above baseline. GDP releases don't meaningfully distort morning zone structure. Full conviction allowed.</div>
+        </div>
+      </div>
+
+      <div class="section-label">Range on news days — hardest rule</div>
+      <div class="range-row">
+        <div class="range-card" style="border-top-color:#FF4444">
+          <div style="font-size:11px;font-weight:600;color:#FF4444">SMALL + ANY NEWS</div>
+          <div class="range-wr" style="color:#FF4444">15.8% WR</div>
+          <div class="range-note">Worst combination in the entire model. No overnight structure + news volatility = random. No exceptions.</div>
+        </div>
+        <div class="range-card" style="border-top-color:#C8A832">
+          <div style="font-size:11px;font-weight:600;color:#C8A832">MEDIUM + NEWS</div>
+          <div class="range-wr" style="color:#C8A832">34.1% WR</div>
+          <div class="range-note">Below baseline. Only take high-quality combos (D+A, A+Lo). Avoid D+NY entirely.</div>
+        </div>
+        <div class="range-card" style="border-top-color:#00C896">
+          <div style="font-size:11px;font-weight:600;color:#00C896">LARGE + NEWS</div>
+          <div class="range-wr" style="color:#00C896">46.0% WR</div>
+          <div class="range-note">Matches non-news performance exactly. Large range absorbs the news shock. Trade normally.</div>
+        </div>
+      </div>
+
+      <div class="section-label">Level performance on news days</div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>Level</th><th class="tbl-r">News WR</th><th class="tbl-r">Non-news WR</th><th class="tbl-r">Delta</th><th>Verdict</th></tr></thead>
+          <tbody>
+            <tr class="top-row"><td><span class="level-pill" style="background:rgba(0,200,150,0.1);color:#00C896">−2.618</span></td><td class="tbl-r" style="color:#00C896;font-weight:600">75.0%</td><td class="tbl-r" style="color:var(--text2)">50.0%</td><td class="tbl-r" style="color:#00C896">+25pp</td><td><span class="badge badge-strong">BEST ON NEWS</span> Deep ext absorbs full spike</td></tr>
+            <tr class="top-row"><td><span class="level-pill" style="background:rgba(0,200,150,0.1);color:#00C896">+0.5</span></td><td class="tbl-r" style="color:#00C896;font-weight:600">50.0%</td><td class="tbl-r" style="color:var(--text2)">27.5%</td><td class="tbl-r" style="color:#00C896">+22pp</td><td><span class="badge badge-strong">NEWS LIFT</span> Extension above swept &amp; holds</td></tr>
+            <tr class="top-row"><td><span class="level-pill" style="background:rgba(0,200,150,0.1);color:#00C896">+1.0</span></td><td class="tbl-r" style="color:#00C896;font-weight:600">50.0%</td><td class="tbl-r" style="color:var(--text2)">35.9%</td><td class="tbl-r" style="color:#00C896">+14pp</td><td><span class="badge badge-strong">NEWS LIFT</span> Session highs hold after spike</td></tr>
+            <tr class="top-row"><td><span class="level-pill" style="background:rgba(0,200,150,0.1);color:#00C896">+0.618</span></td><td class="tbl-r" style="color:#00C896;font-weight:600">50.0%</td><td class="tbl-r" style="color:var(--text2)">37.8%</td><td class="tbl-r" style="color:#00C896">+12pp</td><td><span class="badge badge-strong">NEWS LIFT</span> Extension sweep &amp; reclaim</td></tr>
+            <tr><td><span class="level-pill" style="background:rgba(255,255,255,0.05);color:#aaa">0 (mid)</span></td><td class="tbl-r" style="color:#7BC67A">53.3%</td><td class="tbl-r" style="color:var(--text2)">47.4%</td><td class="tbl-r" style="color:#7BC67A">+6pp</td><td><span class="badge badge-ok">RESILIENT</span> Midpoint always works</td></tr>
+            <tr><td><span class="level-pill" style="background:rgba(255,68,68,0.08);color:#FF6666">+1.272</span></td><td class="tbl-r" style="color:#FF4444;font-weight:600">33.3%</td><td class="tbl-r" style="color:var(--text2)">58.3%</td><td class="tbl-r" style="color:#FF4444">−25pp</td><td><span class="badge badge-avoid">AVOID ON NEWS</span> Mid-fib blown through</td></tr>
+            <tr><td><span class="level-pill" style="background:rgba(255,68,68,0.08);color:#FF6666">−1.272</span></td><td class="tbl-r" style="color:#FF4444;font-weight:600">33.3%</td><td class="tbl-r" style="color:var(--text2)">55.9%</td><td class="tbl-r" style="color:#FF4444">−23pp</td><td><span class="badge badge-avoid">AVOID ON NEWS</span> Same pattern</td></tr>
+            <tr><td><span class="level-pill" style="background:rgba(255,68,68,0.08);color:#FF6666">−1.618</span></td><td class="tbl-r" style="color:#FF4444;font-weight:600">7.7%</td><td class="tbl-r" style="color:var(--text2)">33.3%</td><td class="tbl-r" style="color:#FF4444">−26pp</td><td><span class="badge badge-avoid">HARD AVOID</span> Worst news level in data</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="best-note" style="border-left-color:#FF4444">
+        <strong>Rule:</strong> On CPI, ISM, or FOMC — if the zone is at ±1.272 or ±1.618, skip it entirely regardless of other conditions. Deep extensions (−2.618, +0.5, +0.618, +1.0) gain edge on news days. Mid-range Fibonacci loses edge.
+      </div>
+    </div>
+
+  </div><!-- /body -->
+</div>
+
+<script>
+// ── SESSION DATA (unchanged from original) ─────────────────────────────────
+const SESSIONS = {
+  daily:{color:'#4A9EFF',note:'Best levels: <b>-1.272 (65.2% WR)</b> and <b>0 mid (56.8%)</b>. Avoid +3.618 entirely.',
+    data:[
+      {lvl:'-1.272',trades:23,win:65.2,expr:3.565,sig:'strong'},
+      {lvl:'0 (mid)',trades:37,win:56.8,expr:2.973,sig:'strong'},
+      {lvl:'-4.236',trades:6,win:50.0,expr:2.500,sig:'strong'},
+      {lvl:'-0.5',trades:35,win:48.6,expr:2.400,sig:'ok'},
+      {lvl:'+0.5',trades:30,win:43.3,expr:2.033,sig:'ok'},
+      {lvl:'+1.272',trades:22,win:40.9,expr:1.864,sig:'ok'},
+      {lvl:'+2.618',trades:5,win:40.0,expr:1.800,sig:'ok'},
+      {lvl:'-1.0',trades:23,win:39.1,expr:1.739,sig:'ok'},
+      {lvl:'-2.618',trades:11,win:36.4,expr:1.545,sig:'ok'},
+      {lvl:'+1.0',trades:28,win:35.7,expr:1.500,sig:'ok'},
+      {lvl:'-2.0',trades:14,win:35.7,expr:1.500,sig:'ok'},
+      {lvl:'-0.618',trades:31,win:35.5,expr:1.484,sig:''},
+      {lvl:'+2.0',trades:11,win:27.3,expr:0.909,sig:''},
+      {lvl:'-1.618',trades:16,win:25.0,expr:0.750,sig:''},
+      {lvl:'+0.618',trades:31,win:22.6,expr:0.581,sig:''},
+      {lvl:'+1.618',trades:20,win:20.0,expr:0.400,sig:'avoid'},
+      {lvl:'+3.618',trades:6,win:0.0,expr:-1.000,sig:'avoid'},
+    ]},
+  asia:{color:'#00C896',note:'Best: <b>-2.618 (55.6%)</b> and <b>+0.618 (50.0%)</b>. Avoid +4.236 and +5.0.',
+    data:[
+      {lvl:'-2.618',trades:18,win:55.6,expr:2.889,sig:'strong'},
+      {lvl:'+0.618',trades:22,win:50.0,expr:2.500,sig:'strong'},
+      {lvl:'-3.0',trades:21,win:47.6,expr:2.333,sig:'ok'},
+      {lvl:'0 (mid)',trades:34,win:44.1,expr:2.088,sig:'ok'},
+      {lvl:'+1.618',trades:30,win:43.3,expr:2.033,sig:'ok'},
+      {lvl:'+2.0',trades:29,win:41.4,expr:1.897,sig:'ok'},
+      {lvl:'+1.272',trades:27,win:40.7,expr:1.852,sig:'ok'},
+      {lvl:'+0.5',trades:25,win:40.0,expr:1.800,sig:'ok'},
+      {lvl:'-3.618',trades:25,win:40.0,expr:1.800,sig:'ok'},
+      {lvl:'-0.5',trades:28,win:39.3,expr:1.750,sig:'ok'},
+      {lvl:'-6.18',trades:18,win:38.9,expr:1.722,sig:'ok'},
+      {lvl:'-1.618',trades:21,win:38.1,expr:1.667,sig:'ok'},
+      {lvl:'-5.0',trades:16,win:37.5,expr:1.625,sig:'ok'},
+      {lvl:'+1.0',trades:27,win:33.3,expr:1.333,sig:''},
+      {lvl:'-0.618',trades:25,win:32.0,expr:1.240,sig:''},
+      {lvl:'-1.272',trades:25,win:32.0,expr:1.240,sig:''},
+      {lvl:'-1.0',trades:26,win:30.8,expr:1.154,sig:''},
+      {lvl:'+3.0',trades:27,win:29.6,expr:1.074,sig:''},
+      {lvl:'+2.618',trades:21,win:28.6,expr:1.000,sig:''},
+      {lvl:'-2.0',trades:25,win:28.0,expr:0.960,sig:''},
+      {lvl:'+4.236',trades:12,win:8.3,expr:-0.417,sig:'avoid'},
+      {lvl:'+5.0',trades:18,win:5.6,expr:-0.611,sig:'avoid'},
+    ]},
+  lonleg:{color:'#C8A832',note:'Best: <b>-6.18 (50%)</b> and <b>-1.272 (46.2%)</b>. Avoid +5.0.',
+    data:[
+      {lvl:'-6.18',trades:8,win:50.0,expr:2.500,sig:'strong'},
+      {lvl:'-1.272',trades:26,win:46.2,expr:2.231,sig:'ok'},
+      {lvl:'+0.5',trades:36,win:44.4,expr:2.111,sig:'ok'},
+      {lvl:'-2.618',trades:27,win:44.4,expr:2.111,sig:'ok'},
+      {lvl:'-0.5',trades:32,win:43.8,expr:2.062,sig:'ok'},
+      {lvl:'0 (mid)',trades:32,win:43.8,expr:2.062,sig:'ok'},
+      {lvl:'+0.618',trades:24,win:41.7,expr:1.917,sig:'ok'},
+      {lvl:'+1.618',trades:29,win:41.4,expr:1.897,sig:'ok'},
+      {lvl:'-4.236',trades:10,win:40.0,expr:1.800,sig:'ok'},
+      {lvl:'+1.272',trades:33,win:39.4,expr:1.758,sig:'ok'},
+      {lvl:'-1.618',trades:31,win:38.7,expr:1.710,sig:'ok'},
+      {lvl:'+1.0',trades:34,win:35.3,expr:1.471,sig:''},
+      {lvl:'-0.618',trades:24,win:33.3,expr:1.333,sig:''},
+      {lvl:'-2.0',trades:26,win:30.8,expr:1.154,sig:''},
+      {lvl:'+5.0',trades:8,win:0.0,expr:-1.000,sig:'avoid'},
+    ]},
+  london:{color:'#A855F7',note:'Best: <b>-0.5 (58.3%)</b> and <b>-1.272 (52.6%)</b>. Extension levels (+0.5, +1.0) are weak.',
+    data:[
+      {lvl:'-0.5',trades:24,win:58.3,expr:3.083,sig:'strong'},
+      {lvl:'-1.272',trades:19,win:52.6,expr:2.684,sig:'strong'},
+      {lvl:'+0.618',trades:27,win:48.1,expr:2.370,sig:'ok'},
+      {lvl:'+2.0',trades:11,win:45.5,expr:2.182,sig:'ok'},
+      {lvl:'-2.618',trades:11,win:45.5,expr:2.182,sig:'ok'},
+      {lvl:'-0.618',trades:27,win:44.4,expr:2.111,sig:'ok'},
+      {lvl:'0 (mid)',trades:37,win:43.2,expr:2.027,sig:'ok'},
+      {lvl:'-1.0',trades:24,win:37.5,expr:1.625,sig:'ok'},
+      {lvl:'-2.0',trades:14,win:35.7,expr:1.500,sig:'ok'},
+      {lvl:'+1.618',trades:13,win:30.8,expr:1.154,sig:''},
+      {lvl:'+1.272',trades:22,win:27.3,expr:0.909,sig:''},
+      {lvl:'+0.5',trades:30,win:23.3,expr:0.633,sig:''},
+      {lvl:'+1.0',trades:25,win:20.0,expr:0.400,sig:'avoid'},
+      {lvl:'-1.618',trades:15,win:20.0,expr:0.400,sig:'avoid'},
+      {lvl:'+3.0',trades:5,win:0.0,expr:-1.000,sig:'avoid'},
+    ]},
+  ny:{color:'#FF6B35',note:'Best: <b>-0.618, -1.272, +1.618</b> (all 50% WR). Avoid -0.5 and -1.0.',
+    data:[
+      {lvl:'+1.618',trades:12,win:50.0,expr:2.500,sig:'strong'},
+      {lvl:'-0.618',trades:34,win:50.0,expr:2.500,sig:'strong'},
+      {lvl:'-1.272',trades:22,win:50.0,expr:2.500,sig:'strong'},
+      {lvl:'+1.272',trades:25,win:48.0,expr:2.360,sig:'ok'},
+      {lvl:'-2.0',trades:13,win:46.2,expr:2.231,sig:'ok'},
+      {lvl:'-2.618',trades:12,win:41.7,expr:1.917,sig:'ok'},
+      {lvl:'0 (mid)',trades:52,win:36.5,expr:1.558,sig:'ok'},
+      {lvl:'+0.618',trades:36,win:33.3,expr:1.333,sig:''},
+      {lvl:'+1.0',trades:35,win:31.4,expr:1.200,sig:''},
+      {lvl:'-0.5',trades:42,win:26.2,expr:0.833,sig:''},
+      {lvl:'-1.0',trades:25,win:16.0,expr:0.120,sig:'avoid'},
+      {lvl:'-1.618',trades:18,win:16.7,expr:0.167,sig:'avoid'},
+    ]}
+};
+
+const CONFLUENCE=[
+  {setup:'Daily -1.272 × London 0',edge:77.8,insight:'Strongest single O1 pair signal across all sessions'},
+  {setup:'Daily -0.618 × Daily -1.272',edge:72,insight:'Large sample size, high structural reliability'},
+  {setup:'Daily -0.5 × Daily -0.618',edge:70,insight:'Consistent negative-level stacking edge'},
+  {setup:'Asia +0.5 × London +0.5 × O2',edge:100,insight:'Three-way alignment, rare but extremely powerful'},
+  {setup:'Daily -0.5 × London 0 × O2',edge:75,insight:'Top repeatable session setup in data set'},
+  {setup:'Daily +1.618 × Asia +0.5 × O2',edge:68,insight:'Cross-session alignment signal'},
+  {setup:'London 0 × NY 0',edge:65,insight:'Equilibrium magnet, reliable across session handoffs'},
+  {setup:'Daily +0.618 × Daily -0.5',edge:70,insight:'Structural convergence signal, large sample'},
+];
+const PRINCIPLES=[
+  {icon:'⬇',title:'Negative levels dominate',body:'-0.5, -0.618, -1.272 consistently lead every session. These are the backbone of the Omega edge.'},
+  {icon:'⚡',title:'Stack sessions for edge',body:'When 3+ independent session calculations land on the same price, probability spikes significantly.'},
+  {icon:'⊙',title:'Equilibrium is structural',body:'0 (mid) ranks top in every session. It acts as a gravitational center, especially with O2 confirmation.'},
+  {icon:'✕',title:'Avoid extensions',body:'+3.618, +5.0, +4.236 all show negative or near-zero Exp R. Skip these levels entirely.'},
+];
+
+// ── TABLE UTILS ────────────────────────────────────────────────────────────
+const filters={},sorts={};
+function getColor(s){return SESSIONS[s]?.color||'#888'}
+function computeStats(data){
+  const strong=data.filter(d=>d.sig==='strong');
+  const avoid=data.filter(d=>d.sig==='avoid');
+  const best=data.reduce((a,b)=>b.win>a.win?b:a,data[0]);
+  const avgExpr=data.reduce((s,d)=>s+d.expr,0)/data.length;
+  return{strongCount:strong.length,avoidCount:avoid.length,bestLevel:best.lvl,bestWin:best.win,avgExpr};
+}
+function renderStats(sess){
+  const d=SESSIONS[sess].data,c=getColor(sess),st=computeStats(d);
+  document.getElementById('stats-'+sess).innerHTML=`
+    <div class="stat-card" style="border-top:2px solid ${c}"><div class="stat-label">Total Levels</div><div class="stat-val">${d.length}</div><div class="stat-sub">${d.reduce((s,x)=>s+x.trades,0)} trades</div></div>
+    <div class="stat-card" style="border-top:2px solid #00C896"><div class="stat-label">Strong Signals</div><div class="stat-val" style="color:#00C896">${st.strongCount}</div><div class="stat-sub">Top tier setups</div></div>
+    <div class="stat-card" style="border-top:2px solid ${c}"><div class="stat-label">Best Level</div><div class="stat-val" style="font-size:16px;font-family:monospace">${st.bestLevel}</div><div class="stat-sub">${st.bestWin.toFixed(1)}% win rate</div></div>
+    <div class="stat-card" style="border-top:2px solid #FF4444"><div class="stat-label">Avoid</div><div class="stat-val" style="color:#FF4444">${st.avoidCount}</div><div class="stat-sub">Levels to skip</div></div>`;
+  document.getElementById('note-'+sess).innerHTML=SESSIONS[sess].note;
+}
+function levelPill(lvl,color){
+  const isNeg=lvl.startsWith('-'),isMid=lvl.includes('mid');
+  const bg=isMid?'rgba(255,255,255,0.07)':isNeg?'rgba(0,200,150,0.1)':'rgba(255,107,53,0.1)';
+  const cl=isMid?'#AAA':isNeg?'#00C896':'#FF6B35';
+  return`<span class="level-pill" style="background:${bg};color:${cl}">${lvl}</span>`;
+}
+function exprColor(v){return v>=2.0?'#00C896':v>=1.0?'#7BC67A':v>=0?'#888':'#FF4444'}
+function badgeHTML(sig){
+  if(sig==='strong')return`<span class="badge badge-strong">STRONG</span>`;
+  if(sig==='ok')return`<span class="badge badge-ok">OK</span>`;
+  if(sig==='avoid')return`<span class="badge badge-avoid">AVOID</span>`;
+  return`<span class="badge-none">—</span>`;
+}
+function renderTable(sess,overrideData){
+  const color=getColor(sess);
+  let data=overrideData||[...SESSIONS[sess].data];
+  const so=sorts[sess];
+  if(so) data.sort((a,b)=>so.dir==='asc'?a[so.key]-b[so.key]:b[so.key]-a[so.key]);
+  if(filters[sess+'_strong']) data=data.filter(d=>d.sig==='strong');
+  if(!filters[sess+'_avoid']) data=data.filter(d=>d.sig!=='avoid');
+  document.getElementById('tbody-'+sess).innerHTML=data.map(row=>`<tr class="${row.sig==='strong'?'top-row':''}">
+    <td>${levelPill(row.lvl,color)}</td>
+    <td style="color:var(--text2);font-size:11px">${row.trades}</td>
+    <td style="font-size:12px;font-weight:500;color:var(--text1)">${row.win.toFixed(1)}%</td>
+    <td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100,(row.win/65)*100)}%;background:${color}"></div></div></div></td>
+    <td><span class="expr" style="color:${exprColor(row.expr)}">${row.expr>=0?'+':''}${row.expr.toFixed(3)}R</span></td>
+    <td>${badgeHTML(row.sig)}</td>
+  </tr>`).join('');
+}
+function filterTable(sess,val){
+  renderTable(sess,SESSIONS[sess].data.filter(d=>d.lvl.toLowerCase().includes(val.toLowerCase())));
+}
+function toggleFilter(sess,type){
+  const key=sess+'_'+type;
+  filters[key]=!filters[key];
+  const btn=document.getElementById('filt-'+sess+'-'+type);
+  if(btn) btn.classList.toggle('on',filters[key]);
+  renderTable(sess);
+}
+function sortTable(sess,key){
+  const cur=sorts[sess];
+  sorts[sess]=cur&&cur.key===key?{key,dir:cur.dir==='desc'?'asc':'desc'}:{key,dir:'desc'};
+  renderTable(sess);
+}
+function renderConfluence(){
+  document.getElementById('conf-list').innerHTML=CONFLUENCE.map(c=>`
+    <div class="confluence-row">
+      <div style="flex:1"><div class="conf-label">${c.setup}</div><div class="conf-sub">${c.insight}</div></div>
+      <div class="conf-bar-wrap"><div class="conf-bar" style="width:${c.edge}%"></div></div>
+      <div class="conf-edge">${c.edge}%</div>
+    </div>`).join('');
+  document.getElementById('insights-grid').innerHTML=PRINCIPLES.map(p=>`
+    <div class="insight-card">
+      <div class="insight-icon">${p.icon}</div>
+      <div class="insight-title">${p.title}</div>
+      <div class="insight-body">${p.body}</div>
+    </div>`).join('');
+}
+
+// ── SCORER ─────────────────────────────────────────────────────────────────
+// Per-session win rates for each level key (from backtested data)
+const SESS_LV_WR = {
+  D:   {none:0, mid:56.8, n05:48.6, n618:35.5, n10:39.1, n127:65.2, n162:25.0, n20:35.7, p05:43.3, p618:22.6, p10:35.7, p127:40.9, p162:20.0, p20:27.3},
+  A:   {none:0, mid:44.1, n05:39.3, n618:32.0, n10:30.8, n127:32.0, n162:38.1, n20:28.0, p05:40.0, p618:50.0, p10:33.3, p127:40.7, p162:43.3, p20:41.4},
+  LG:  {none:0, mid:43.8, n05:43.8, n618:33.3, n10:35.3, n127:46.2, n162:38.7, n20:30.8, p05:44.4, p618:41.7, p10:35.3, p127:39.4, p162:41.4, p20:0},
+  Lo:  {none:0, mid:43.2, n05:58.3, n618:44.4, n10:37.5, n127:52.6, n162:20.0, n20:35.7, p05:23.3, p618:48.1, p10:20.0, p127:27.3, p162:30.8, p20:45.5},
+  NY:  {none:0, mid:36.5, n05:26.2, n618:50.0, n10:16.0, n127:50.0, n162:16.7, n20:46.2, p05:0,    p618:33.3, p10:31.4, p127:48.0, p162:50.0, p20:0},
+};
+const SESS_WEIGHT = {D:1.0, A:1.0, LG:1.05, Lo:1.05, NY:0.9};
+const SESS_COLORS = {D:'#4A9EFF', A:'#00C896', LG:'#C8A832', Lo:'#A855F7', NY:'#FF6B35'};
+
+const RANGE_MULT = {L:1.18, M:1.0, S:0.72};
+const DOL_ADJ    = {aligned:12, partial:4, none:0, against:-16};
+const NEWS_ADJ   = {none:0, gdp:0, ppi:0, nfp:0, cpi:-7, ism:-10, fomc:-35};
+
+function scoreIt(){
+  const sessions = ['D','A','LG','Lo','NY'];
+  let levelDetail = [];
+  let anchorCount = 0;
+  let rawBase = 0;
+
+  sessions.forEach(s=>{
+    const v = document.getElementById('lv-'+s).value;
+    if(v==='none') return;
+    const wr = SESS_LV_WR[s][v] || 0;
+    const contribution = wr * SESS_WEIGHT[s];
+    anchorCount++;
+    rawBase += contribution;
+    levelDetail.push({sess:s, val:v, wr, contribution});
+  });
+
+  if(anchorCount < 2){
+    const numEl=document.getElementById('sc-num');
+    numEl.textContent='—'; numEl.style.color='var(--text3)';
+    document.getElementById('sc-ring').style.borderColor='var(--border)';
+    document.getElementById('sc-verdict').textContent='Select 2+ sessions';
+    document.getElementById('sc-verdict').style.cssText='text-align:center;font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;margin-bottom:12px;background:var(--bg3);color:var(--text3)';
+    document.getElementById('sc-warns').innerHTML='';
+    document.getElementById('sc-bkd').innerHTML='<div style="font-size:11px;color:var(--text3);padding:8px 0">Need at least 2 sessions to calculate</div>';
+    document.getElementById('sc-lvl-bars').innerHTML='';
+    return;
+  }
+
+  const avgWR = rawBase / anchorCount;
+  const anchorBonus = anchorCount >= 3 ? 6 : 0;
+
+  // Check for high-WR combo bonuses
+  const has = s => document.getElementById('lv-'+s).value !== 'none';
+  let comboBonus = 0;
+  if(has('D') && has('A') && has('LG')) comboBonus = 8;
+  else if(has('D') && has('A') && has('NY')) comboBonus = 6;
+  else if(has('A') && has('Lo') && has('LG')) comboBonus = 7;
+  else if(has('D') && has('A')) comboBonus = 5;
+  else if(has('Lo') && has('LG')) comboBonus = 4;
+
+  const range = document.getElementById('sc-range').value;
+  const dol   = document.getElementById('sc-dol').value;
+  const news  = document.getElementById('sc-news').value;
+
+  const rangeMult = RANGE_MULT[range];
+  const dolAdj    = DOL_ADJ[dol];
+  const newsAdj   = NEWS_ADJ[news];
+
+  // Raw score: avg session WR (normalised), adjusted by all factors
+  const adjusted = (avgWR * rangeMult) + anchorBonus + comboBonus + dolAdj + newsAdj;
+  const score = Math.min(100, Math.max(0, Math.round(adjusted * 1.35)));
+
+  // UI
+  const col = score>=75?'#00C896':score>=60?'#4A9EFF':score>=45?'#C8A832':score>=30?'#FF6B35':'#FF4444';
+  const numEl = document.getElementById('sc-num');
+  numEl.textContent = score; numEl.style.color = col;
+  document.getElementById('sc-ring').style.borderColor = col;
+
+  const labels = ['Select 2+ sessions','Hard pass — no trade','Below avg — skip','Average — half size, 3+ anchors only','High conviction — full size','Elite — full size'];
+  const grade  = score>=75?5:score>=60?4:score>=45?3:score>=30?2:1;
+  const vEl = document.getElementById('sc-verdict');
+  vEl.textContent = labels[grade];
+  vEl.style.cssText = `text-align:center;font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;margin-bottom:12px;background:${col}22;color:${col};border:1px solid ${col}44`;
+
+  // Warnings
+  const warns = [];
+  if(news==='fomc') warns.push('⛔ FOMC day — no trade. Negative EV.');
+  if(news==='ism')  warns.push('⚠ ISM: skip 9:35–9:59. Wait for 10:00 slot.');
+  if(range==='S' && news!=='none') warns.push('⛔ Small range + news = 15.8% WR. Hard avoid.');
+  if(dol==='against') warns.push('⚠ DOL is against trade direction — serious red flag.');
+  if(anchorCount < 2) warns.push('Need at least 2 sessions aligning.');
+  document.getElementById('sc-warns').innerHTML = warns.length
+    ? `<div class="warn-box">${warns.join('<br>')}</div>` : '';
+
+  // Breakdown
+  const rangeLabel = {L:'Large (×1.18)',M:'Medium (×1.0)',S:'Small (×0.72)'}[range];
+  const dolLabel   = {aligned:'Aligned (+12)',partial:'Partial (+4)',none:'None (0)',against:'Against (−16)'}[dol];
+  const newsLabel  = {none:'None (0)',gdp:'GDP (0)',ppi:'PPI (0)',nfp:'NFP (0)',cpi:'CPI (−7)',ism:'ISM (−10)',fomc:'FOMC (−35)'}[news];
+  document.getElementById('sc-bkd').innerHTML = [
+    ['Avg session WR', avgWR.toFixed(1)+'%', '#888'],
+    ['Anchor count ('+anchorCount+')', anchorBonus>0?'+'+anchorBonus:'0', anchorBonus>0?'#00C896':'var(--text3)'],
+    ['Combo bonus', comboBonus>0?'+'+comboBonus:'0', comboBonus>0?'#00C896':'var(--text3)'],
+    ['Range', rangeLabel, range==='L'?'#00C896':range==='S'?'#FF4444':'var(--text3)'],
+    ['DOL', dolLabel, dolAdj>0?'#00C896':dolAdj<0?'#FF4444':'var(--text3)'],
+    ['News', newsLabel, newsAdj<0?'#FF4444':'var(--text3)'],
+  ].map(([k,v,c])=>`<div class="bkd-row"><span class="bkd-key">${k}</span><span class="bkd-val" style="color:${c}">${v}</span></div>`).join('');
+
+  // Level bars
+  document.getElementById('sc-lvl-bars').innerHTML = levelDetail.map(d=>{
+    const pct = Math.min(100,(d.wr/65)*100);
+    const c = SESS_COLORS[d.sess];
+    const lvName = d.val==='mid'?'0 (mid)':d.val.replace('n','-').replace('p','+').replace(/(\d)(\d\d)/,'$1.$2');
+    return `<div class="lv-bar-row">
+      <span class="lv-sess" style="color:${c}">${d.sess}</span>
+      <span class="lv-name">${lvName}</span>
+      <div class="lv-bar-bg"><div class="lv-bar-f" style="width:${pct}%;background:${c}"></div></div>
+      <span class="lv-pts" style="color:${c}">${d.wr.toFixed(0)}% WR</span>
+    </div>`;
+  }).join('');
+}
+
+// ── NAV ────────────────────────────────────────────────────────────────────
+function switchTab(s){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.s===s));
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+s));
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+Object.keys(SESSIONS).forEach(s=>{renderStats(s);renderTable(s);});
+renderConfluence();
+</script>
+</body>
+</html>
